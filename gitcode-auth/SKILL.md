@@ -1,9 +1,9 @@
 ---
-name: gc-auth
+name: gitcode-auth
 description: Use GitCode CLI authentication commands to log in, inspect auth state, troubleshoot token source and protocol settings, or log out. Trigger for GitCode auth, token, login, logout, permission, or credential problems.
 ---
 
-# gc-auth
+# gitcode-auth
 
 Use GitCode CLI authentication safely across Windows and Linux.
 

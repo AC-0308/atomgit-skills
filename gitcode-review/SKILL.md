@@ -1,9 +1,9 @@
 ---
-name: gc-review
+name: gitcode-review
 description: Review GitCode pull requests and commits using GitCode CLI comments, review approval, replies, PR diffs, and commit comments. Trigger when the user asks to review, approve, comment on, or inspect a GitCode PR or commit.
 ---
 
-# gc-review
+# gitcode-review
 
 Use GitCode CLI for PR and commit review.
 

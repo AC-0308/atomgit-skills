@@ -13,25 +13,56 @@ Every skill in this repository is written to work on Windows and Linux.
 - On Windows PowerShell, `gc` is a built-in alias for `Get-Content`; use `gitcode`, `gc.exe`, or `python -m gc_cli`.
 - Code download and sync workflows should use SSH by default. Ensure `git@gitcode.com` SSH access works before clone/sync operations.
 
-## Skills
+## Skill Design
 
-- `gc-auth`: authentication and token troubleshooting
-- `gc-repo`: repository view/list/create/fork/clone/delete/sync/stats
-- `gc-issue`: issue create/list/view/edit/comment/label/relation workflows
-- `gc-pr`: pull request create/list/view/edit/checkout/merge/sync workflows
-- `gc-review`: PR and commit review workflows
-- `gc-release`: release create/edit/upload/download/delete workflows
-- `gc-commit`: commit view/diff/patch/comment workflows
-- `gc-label-milestone`: label and milestone management
-- `gc-regression`: real-command smoke and regression validation
-- `gitcode-repo-onboarding`: onboard to an existing GitCode repository
-- `gitcode-security-check`: repository security and sensitive information review
-- `gitcode-issue-create`: guided issue creation
-- `gitcode-issue-review`: pre-development issue analysis
-- `gitcode-issue-triage`: issue queue triage
-- `gitcode-pr-create`: guided PR creation
-- `gitcode-pr-review`: engineering PR review
-- `gitcode-release-helper`: release planning and publishing
+The skills are split into two layers:
+
+1. Core command skills: broad command-family references for direct GitCode CLI operations.
+2. Workflow skills: task-oriented procedures built on top of the core commands.
+
+This keeps the set mostly orthogonal:
+
+- Use a workflow skill when the user asks for an end-to-end task such as creating a PR, reviewing a PR, publishing a release, onboarding, or security review.
+- Use a core command skill when the user asks for direct command operations or when no workflow skill fits.
+- Each skill is self-contained and can work without loading another skill.
+
+## Core Command Skills
+
+| Skill | Use When | Boundary |
+| --- | --- | --- |
+| `gitcode-auth` | Login, logout, token source, credential troubleshooting, auth status. | Does not manage repo/issue/PR workflows. |
+| `gitcode-repo` | View, list, clone, create, fork, delete, stats, or sync repositories. | Does not explain project build/test conventions; use onboarding for that. |
+| `gitcode-issue` | Direct issue commands: create, list, view, edit, close, reopen, comments, labels, relations. | For guided issue writing, use `gitcode-issue-create`. |
+| `gitcode-pr` | Direct PR commands: create, list, view, edit, checkout, comment, ready/WIP, close, reopen, merge, sync. | For guided PR creation or engineering review, use workflow skills. |
+| `gitcode-review` | PR/commit comment mechanics, review submission, approval command usage. | For full engineering review, use `gitcode-pr-review`. |
+| `gitcode-release` | Direct release commands: list, view, create, edit, upload, download, delete. | For release planning and notes, use `gitcode-release-helper`. |
+| `gitcode-commit` | Commit view, diff, patch, and commit comments. | Does not perform full PR review. |
+| `gitcode-label-milestone` | Label and milestone management for issues/PRs/releases. | Does not triage an issue queue by itself. |
+| `gitcode-regression` | Real-command smoke tests after CLI install, upgrade, packaging, or behavior changes. | Does not replace a target repository's own test suite. |
+
+## Workflow Skills
+
+| Skill | Use When | Boundary |
+| --- | --- | --- |
+| `gitcode-repo-onboarding` | A user wants to understand, clone, build, test, or contribute to a GitCode repository. | Uses repo commands plus local inspection; does not change remote state unless asked. |
+| `gitcode-security-check` | Security audit, sensitive information review, secret scan, auth/config risk review. | Reports findings; does not rewrite history or rotate secrets without explicit request. |
+| `gitcode-issue-create` | Turn a user report or request into a high-quality GitCode issue. | Focuses on pre-create drafting and duplicate search. |
+| `gitcode-issue-review` | Analyze an existing issue before implementation. | Produces readiness, risks, and acceptance criteria; does not triage queues. |
+| `gitcode-issue-triage` | Batch organize issue queues with labels, priorities, duplicates, and comments. | Does not do implementation planning for one issue in depth. |
+| `gitcode-pr-create` | Prepare and open a PR with branch checks, diff review, body file, and JSON result. | Focuses on PR creation, not review. |
+| `gitcode-pr-review` | Perform an engineering PR review with findings, verification, and approval/comment flow. | Focuses on review, not PR creation. |
+| `gitcode-release-helper` | Plan and publish a release: notes, tag checks, assets, verification. | Uses release commands but adds release process guidance. |
+
+## Overlap Policy
+
+Some workflows intentionally repeat the exact command snippets they need. That repetition is deliberate so every skill can be installed and used independently.
+
+When two skills could apply, prefer the narrower workflow skill:
+
+- Creating a PR: `gitcode-pr-create`, not `gitcode-pr`
+- Reviewing a PR: `gitcode-pr-review`, not `gitcode-review`
+- Publishing a release: `gitcode-release-helper`, not `gitcode-release`
+- Writing a new issue: `gitcode-issue-create`, not `gitcode-issue`
 
 ## Install
 
@@ -40,15 +71,15 @@ Copy any skill directory into the local skill directory of your AI client. Each 
 Codex example:
 
 ```bash
-mkdir -p ~/.codex/skills/gc-pr
-cp -R gc-pr/SKILL.md ~/.codex/skills/gc-pr/SKILL.md
+mkdir -p ~/.codex/skills/gitcode-pr
+cp -R gitcode-pr/SKILL.md ~/.codex/skills/gitcode-pr/SKILL.md
 ```
 
 Claude example:
 
 ```bash
-mkdir -p ~/.claude/skills/gc-pr
-cp -R gc-pr/SKILL.md ~/.claude/skills/gc-pr/SKILL.md
+mkdir -p ~/.claude/skills/gitcode-pr
+cp -R gitcode-pr/SKILL.md ~/.claude/skills/gitcode-pr/SKILL.md
 ```
 
 ## Verify CLI

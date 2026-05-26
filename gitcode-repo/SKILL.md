@@ -1,9 +1,9 @@
 ---
-name: gc-repo
+name: gitcode-repo
 description: Use GitCode CLI repository commands for view, list, clone, create, fork, delete, stats, and repo sync. Trigger when users need to inspect, create, fork, clone, delete, or synchronize GitCode repositories.
 ---
 
-# gc-repo
+# gitcode-repo
 
 Operate GitCode repositories with current GitCode CLI behavior.
 

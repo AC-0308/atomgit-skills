@@ -1,9 +1,9 @@
 ---
-name: gc-commit
+name: gitcode-commit
 description: Use GitCode CLI commit commands to view commits, retrieve diff or patch output, and manage commit comments. Trigger for GitCode commit inspection, commit review, or commit comment workflows.
 ---
 
-# gc-commit
+# gitcode-commit
 
 Inspect commits and manage commit comments.
 

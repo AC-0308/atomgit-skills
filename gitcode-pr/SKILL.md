@@ -1,9 +1,9 @@
 ---
-name: gc-pr
+name: gitcode-pr
 description: Use GitCode CLI pull request commands for creating, listing, viewing, editing, commenting, checking out, closing, reopening, marking ready or WIP, merging, testing, and syncing PRs. Trigger for GitCode PR workflows.
 ---
 
-# gc-pr
+# gitcode-pr
 
 Manage GitCode pull requests with current CLI behavior.
 

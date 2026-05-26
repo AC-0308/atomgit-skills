@@ -1,9 +1,9 @@
 ---
-name: gc-label-milestone
+name: gitcode-label-milestone
 description: Use GitCode CLI label and milestone commands to list, create, edit, delete, and apply repository planning metadata. Trigger for GitCode labels, milestones, issue labels, release planning, or queue organization.
 ---
 
-# gc-label-milestone
+# gitcode-label-milestone
 
 Manage GitCode labels and milestones.
 

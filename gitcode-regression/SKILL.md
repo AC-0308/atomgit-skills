@@ -1,9 +1,9 @@
 ---
-name: gc-regression
+name: gitcode-regression
 description: Run GitCode CLI real-command smoke and regression checks across Windows and Linux. Trigger before or after GitCode CLI upgrades, release validation, package verification, or command behavior changes.
 ---
 
-# gc-regression
+# gitcode-regression
 
 Validate GitCode CLI behavior with real commands.
 

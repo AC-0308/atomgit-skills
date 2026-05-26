@@ -1,9 +1,9 @@
 ---
-name: gc-issue
+name: gitcode-issue
 description: Use GitCode CLI issue commands for creating, listing, viewing, editing, closing, reopening, commenting, labeling, and querying issue relations. Trigger for GitCode issue workflows.
 ---
 
-# gc-issue
+# gitcode-issue
 
 Manage GitCode issues with stable CLI patterns.
 

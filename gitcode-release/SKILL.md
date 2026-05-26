@@ -1,9 +1,9 @@
 ---
-name: gc-release
+name: gitcode-release
 description: Use GitCode CLI release commands to list, view, create, edit, upload, download, and delete releases. Trigger for GitCode release publishing, asset upload/download, release notes, or version delivery.
 ---
 
-# gc-release
+# gitcode-release
 
 Manage GitCode releases with GitCode CLI.
 
