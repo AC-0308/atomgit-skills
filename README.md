@@ -51,6 +51,8 @@ This keeps the set mostly orthogonal:
 | `gitcode-issue-triage` | Batch organize issue queues with labels, priorities, duplicates, and comments. | Does not do implementation planning for one issue in depth. |
 | `gitcode-pr-create` | Prepare and open a PR with branch checks, diff review, body file, and JSON result. | Focuses on PR creation, not review. |
 | `gitcode-pr-review` | Perform an engineering PR review with findings, verification, and approval/comment flow. | Focuses on review, not PR creation. |
+| `gitcode-pr-inline-review` | Submit inline code review comments on specific PR diff lines using `gc pr comment --path --position`. | Focuses on line-level comment submission; use alongside `gitcode-pr-review` for full review workflows. |
+| `gitcode-pr-apply-feedback` | Pull PR review feedback (inline comments, discussion, issue), organize into fix list, apply locally, verify, push, and reply. | Closes the review loop: receive → fix → reply. |
 | `gitcode-release-helper` | Plan and publish a release: notes, tag checks, assets, verification. | Uses release commands but adds release process guidance. |
 
 ## Overlap Policy
