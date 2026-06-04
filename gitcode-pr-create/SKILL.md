@@ -14,10 +14,11 @@ Use `gitcode` for cross-platform instructions. Linux/macOS may use `gc`; Windows
 ## Workflow
 
 1. Verify current branch and working tree.
-2. Confirm remote and target repository.
-3. Review diff and test evidence.
-4. Draft PR body in a file.
-5. Create PR with `--body-file` and `--json`.
+2. Run the pre-commit readiness check (see Pre-commit Check).
+3. Confirm remote and target repository.
+4. Review diff and test evidence.
+5. Draft PR body in a file.
+6. Create PR with `--body-file` and `--json`.
 
 ## Local Checks
 
@@ -28,6 +29,25 @@ git log --oneline --decorate -5
 git diff --stat origin/main...HEAD
 ```
 
+## Pre-commit Check
+
+If the repository configures pre-commit, verify the hooks actually ran on the
+code before opening the PR. When the tool or hook is missing, install and
+initialize it rather than skipping the check. Requires GitCode CLI v0.6.0+; see
+the `gitcode-precommit` skill for full details.
+
+```bash
+# Install + initialize if missing, then run the hooks (non-interactive / agent)
+gitcode precommit check --run --yes
+
+# Interactive terminal: --yes is not required
+gitcode precommit check --run
+```
+
+- A `0` exit (or `ok: true`) means there is no config, or the hooks passed.
+- A non-zero exit means the hooks failed or the environment is not ready; fix
+  that before creating the PR rather than relying on remote CI to catch it.
+
 ## PR Body Template
 
 ```markdown
@@ -36,6 +56,7 @@ git diff --stat origin/main...HEAD
 
 ## Verification
 - [ ] command/result
+- [ ] `gitcode precommit check --run` passed (if the repo uses pre-commit)
 
 ## Risk
 - ...
