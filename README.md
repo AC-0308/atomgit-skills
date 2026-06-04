@@ -2,7 +2,7 @@
 
 This repository publishes standalone skills for operating GitCode with the latest GitCode CLI.
 
-Current baseline: GitCode CLI `v0.5.7`.
+Current baseline: GitCode CLI `v0.6.0`.
 
 ## Cross-platform command rule
 
@@ -37,6 +37,7 @@ This keeps the set mostly orthogonal:
 | `gitcode-review` | PR/commit comment mechanics, review submission, approval command usage. | For full engineering review, use `gitcode-pr-review`. |
 | `gitcode-release` | Direct release commands: list, view, create, edit, upload, download, delete. | For release planning and notes, use `gitcode-release-helper`. |
 | `gitcode-commit` | Commit view, diff, patch, and commit comments. | Does not perform full PR review. |
+| `gitcode-precommit` | Check pre-commit config and local environment before committing (`precommit check`, v0.6.0+). | Checks the local pre-commit environment; does not replace the repo's test suite or CI. |
 | `gitcode-label-milestone` | Label and milestone management for issues/PRs/releases. | Does not triage an issue queue by itself. |
 | `gitcode-regression` | Real-command smoke tests after CLI install, upgrade, packaging, or behavior changes. | Does not replace a target repository's own test suite. |
 
