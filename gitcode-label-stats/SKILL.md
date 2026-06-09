@@ -83,7 +83,11 @@ gitcode pr list -R <org>/<repo> --state all --limit 100 --json
 
 ### Step 5: 输出报表
 
-生成 CSV 文件，包含以下列（按需组合）：
+生成 **两份** CSV 文件：
+
+#### 文件 1：全量数据（`<label>-pr-stats.csv`）
+
+包含所有仓库，含标签 PR 数为 0 的仓库：
 
 ```text
 Repository, Total PRs, <label> PRs, <label> Ratio,
@@ -91,9 +95,13 @@ Repository, Total PRs, <label> PRs, <label> Ratio,
 ..., Overall <label> Ratio
 ```
 
-- 多标签时，每个标签对应一组列
-- 多月份时，每个月份对应一组列
-- 最后一行为 TOTAL 汇总行
+#### 文件 2：过滤数据（`<label>-pr-stats-filtered.csv`）
+
+过滤掉标签 PR 数为 0 的仓库，TOTAL 行基于过滤后的仓库重新计算（分子分母均不含被过滤仓库）：
+
+- 过滤条件：`<label> PRs == 0` 的仓库行移除
+- TOTAL 行重算：对过滤后的仓库行，累加各数值列，重新计算占比
+- 适用于分析"实际使用该标签的仓库群体"的采纳情况
 
 CSV 写入需使用 UTF-8 编码：
 
@@ -117,12 +125,28 @@ $csvLines | Out-File -FilePath $csvPath -Encoding utf8
 
 ## 输出示例
 
+### 文件 1：全量数据（`ai-assisted-pr-stats.csv`）
+
 ```text
 Repository,Total PRs,ai-assisted PRs,ai-assisted Ratio,2026-04 Total,2026-04 ai-assisted,2026-04 Ratio,2026-05 Total,2026-05 ai-assisted,2026-05 Ratio
 repo-a,340,26,7.6%,95,0,0%,99,6,6.1%
 repo-b,369,12,3.3%,33,0,0%,29,2,6.9%
 repo-c,22,11,50%,8,1,12.5%,4,4,100%
-TOTAL,3879,121,3.1%,613,1,0.2%,582,55,9.5%
+repo-d,50,0,0%,10,0,0%,12,0,0%
+repo-e,30,0,0%,5,0,0%,8,0,0%
+TOTAL,811,49,6%,151,1,0.7%,152,12,7.9%
+```
+
+### 文件 2：过滤数据（`ai-assisted-pr-stats-filtered.csv`）
+
+移除 ai-assisted PRs 为 0 的仓库（repo-d、repo-e），TOTAL 行重新计算：
+
+```text
+Repository,Total PRs,ai-assisted PRs,ai-assisted Ratio,2026-04 Total,2026-04 ai-assisted,2026-04 Ratio,2026-05 Total,2026-05 ai-assisted,2026-05 Ratio
+repo-a,340,26,7.6%,95,0,0%,99,6,6.1%
+repo-b,369,12,3.3%,33,0,0%,29,2,6.9%
+repo-c,22,11,50%,8,1,12.5%,4,4,100%
+TOTAL,731,49,6.7%,136,1,0.7%,132,12,9.1%
 ```
 
 ## 使用示例
@@ -133,7 +157,7 @@ TOTAL,3879,121,3.1%,613,1,0.2%,582,55,9.5%
 
 > 统计 openLiBing 组织下所有仓库的 ai-assisted 标签 PR 数量，加上每个仓库的总 PR 数、4 月和 5 月的月度数据及占比，输出 CSV
 
-agent 行为：Step 1 获取仓库列表 → Step 2 逐仓库获取 PR → Step 3 匹配 `ai-assisted` 标签，按 `2026-04` 和 `2026-05` 归类 → Step 4 汇总 → Step 5 输出 CSV
+agent 行为：Step 1 获取仓库列表 → Step 2 逐仓库获取 PR → Step 3 匹配 `ai-assisted` 标签，按 `2026-04` 和 `2026-05` 归类 → Step 4 汇总 → Step 5 输出两份 CSV（全量 + 过滤）
 
 输出列：Repository, Total PRs, ai-assisted PRs, ai-assisted Ratio, 2026-04 Total, 2026-04 ai-assisted, 2026-04 Ratio, 2026-05 Total, 2026-05 ai-assisted, 2026-05 Ratio
 
@@ -169,3 +193,6 @@ agent 行为：同示例 2，标签为 `{ai-assisted}`，月度为 `2026-04` 和
 - 遇到不可访问的仓库时跳过并记录，不中断整体统计
 - 分母为 0 时占比显示 `0%`，不执行除法
 - 大量仓库时注意 API 速率限制，适当添加延迟
+- **必须生成两份 CSV**：全量版和过滤版（过滤掉标签 PR 数为 0 的仓库）
+- 过滤版的 TOTAL 行必须基于过滤后的仓库重新累加计算，不能复用全量版的 TOTAL
+- 若当前月份不是完整月份（如月中统计），列名需标注截止日期，如 `Jun Total PRs (as of 2026-06-09)`
