@@ -83,7 +83,11 @@ gitcode pr list -R <org>/<repo> --state all --limit 100 --json
 
 ### Step 5: 输出报表
 
-生成 CSV 文件，包含以下列（按需组合）：
+生成 **两份** CSV 文件：
+
+#### 文件 1：全量数据（`<label>-pr-stats.csv`）
+
+包含所有仓库，含标签 PR 数为 0 的仓库：
 
 ```text
 Repository, Total PRs, <label> PRs, <label> Ratio,
@@ -91,9 +95,13 @@ Repository, Total PRs, <label> PRs, <label> Ratio,
 ..., Overall <label> Ratio
 ```
 
-- 多标签时，每个标签对应一组列
-- 多月份时，每个月份对应一组列
-- 最后一行为 TOTAL 汇总行
+#### 文件 2：过滤数据（`<label>-pr-stats-filtered.csv`）
+
+过滤掉标签 PR 数为 0 的仓库，TOTAL 行基于过滤后的仓库重新计算（分子分母均不含被过滤仓库）：
+
+- 过滤条件：`<label> PRs == 0` 的仓库行移除
+- TOTAL 行重算：对过滤后的仓库行，累加各数值列，重新计算占比
+- 适用于分析"实际使用该标签的仓库群体"的采纳情况
 
 CSV 写入需使用 UTF-8 编码：
 
@@ -105,67 +113,77 @@ CSV 写入需使用 UTF-8 编码：
 $csvLines | Out-File -FilePath $csvPath -Encoding utf8
 ```
 
-## 实现方法
-
-本 skill 不提供固定脚本，而是描述方法。AI agent 应根据以下指导，结合当前环境动态生成执行逻辑：
-
-### 方法 A: 使用 GitCode CLI（推荐）
-
-直接使用 `gitcode pr list` 逐仓库获取 PR 数据，解析 JSON 输出。
-
-**优点**：跨平台，无需额外依赖，认证由 CLI 管理。
-
-**注意事项**：
-- Windows 下 CLI 的 JSON 输出可能存在编码问题，建议将输出写入临时文件后读取
-- 大量仓库时需注意 API 速率限制，可在仓库间添加适当延迟
-- `--json` 输出可能因终端编码导致中文乱码，使用文件中转可规避
-
-### 方法 B: 使用 GitCode REST API
-
-当 CLI 输出格式不稳定时，可直接调用 GitCode API v5：
-
-```text
-GET https://api.gitcode.com/api/v5/repos/<org>/<repo>/pulls?state=all&per_page=100&page=<n>
-Authorization: Bearer <token>
-```
-
-**获取 token**：
-
-```bash
-gitcode auth token
-```
-
-**分页**：每页最多 100 条，通过 `page` 参数翻页，当返回数组长度小于 100 时停止。
-
-**注意**：
-- 仓库名含中文或特殊字符时，需对仓库名部分做 URL 编码（`EscapeDataString`），但不要编码 `/`
-- 已删除的仓库会返回 HTTP 400/404，需捕获异常并跳过
-- API 返回的 `created_at` 格式为 ISO 8601（如 `2026-05-12T18:58:28+08:00`），截取前 7 位即可得到年月
-
-### 方法 C: 混合方式
-
-用 CLI 获取仓库列表和 token，用 API 获取 PR 数据。兼顾 CLI 的便捷性和 API 的稳定性。
-
 ## 常见问题
 
 | 问题 | 原因 | 解决方案 |
 |------|------|----------|
-| 仓库列表中有仓库但 API 返回 404 | 仓库已删除，列表有缓存 | 跳过该仓库，记录为不可访问 |
-| CLI JSON 输出解析失败 | 终端编码或输出折行 | 将输出写入文件后读取，或改用 API |
-| 中文仓库名 API 报 400 | URL 编码问题 | 仅对仓库名部分做 `EscapeDataString`，不要编码 `org/` 前缀 |
-| PR 数量超过 100 | 单页上限 | 使用分页参数 `page` 逐页获取 |
+| 仓库列表中有仓库但 CLI 报错 | 仓库已删除，列表有缓存 | 跳过该仓库，记录为不可访问 |
+| CLI JSON 输出解析失败 | 终端编码或输出折行 | 将输出写入临时文件后用 UTF-8 读取 |
+| PR 数量超过 100 | 单页上限 | 使用 `--page` 参数逐页获取 |
 | Windows 中文写入 CSV 乱码 | PowerShell 默认编码非 UTF-8 | 使用 `[System.IO.File]::WriteAllLines` 并指定 UTF-8 编码 |
 | 标签 PR 占比显示 0% | 月度内无标签 PR 或除零 | 分母为 0 时占比显示 `0%` 或 `N/A` |
 
 ## 输出示例
+
+### 文件 1：全量数据（`ai-assisted-pr-stats.csv`）
 
 ```text
 Repository,Total PRs,ai-assisted PRs,ai-assisted Ratio,2026-04 Total,2026-04 ai-assisted,2026-04 Ratio,2026-05 Total,2026-05 ai-assisted,2026-05 Ratio
 repo-a,340,26,7.6%,95,0,0%,99,6,6.1%
 repo-b,369,12,3.3%,33,0,0%,29,2,6.9%
 repo-c,22,11,50%,8,1,12.5%,4,4,100%
-TOTAL,3879,121,3.1%,613,1,0.2%,582,55,9.5%
+repo-d,50,0,0%,10,0,0%,12,0,0%
+repo-e,30,0,0%,5,0,0%,8,0,0%
+TOTAL,811,49,6%,151,1,0.7%,152,12,7.9%
 ```
+
+### 文件 2：过滤数据（`ai-assisted-pr-stats-filtered.csv`）
+
+移除 ai-assisted PRs 为 0 的仓库（repo-d、repo-e），TOTAL 行重新计算：
+
+```text
+Repository,Total PRs,ai-assisted PRs,ai-assisted Ratio,2026-04 Total,2026-04 ai-assisted,2026-04 Ratio,2026-05 Total,2026-05 ai-assisted,2026-05 Ratio
+repo-a,340,26,7.6%,95,0,0%,99,6,6.1%
+repo-b,369,12,3.3%,33,0,0%,29,2,6.9%
+repo-c,22,11,50%,8,1,12.5%,4,4,100%
+TOTAL,731,49,6.7%,136,1,0.7%,132,12,9.1%
+```
+
+## 使用示例
+
+以下为用户向 AI agent 发出的提示词示例，agent 收到后按本 skill 工作流程执行。
+
+### 示例 1：单标签 + 月度维度（完整示例）
+
+> 统计 openLiBing 组织下所有仓库的 ai-assisted 标签 PR 数量，加上每个仓库的总 PR 数、4 月和 5 月的月度数据及占比，输出 CSV
+
+agent 行为：Step 1 获取仓库列表 → Step 2 逐仓库获取 PR → Step 3 匹配 `ai-assisted` 标签，按 `2026-04` 和 `2026-05` 归类 → Step 4 汇总 → Step 5 输出两份 CSV（全量 + 过滤）
+
+输出列：Repository, Total PRs, ai-assisted PRs, ai-assisted Ratio, 2026-04 Total, 2026-04 ai-assisted, 2026-04 Ratio, 2026-05 Total, 2026-05 ai-assisted, 2026-05 Ratio
+
+### 示例 2：多标签 + 月度维度
+
+> 统计 openLiBing 组织各仓库的 PR 标签分布，标签包括 ai-assisted 和 bug，加上 4 月和 5 月的月度数据，输出 CSV
+
+agent 行为：同上流程，但标签集合为 `{ai-assisted, bug}`，月度筛选 `2026-04` 和 `2026-05`，CSV 列包含两组标签列和两组月度列。
+
+### 示例 3：指定月份范围
+
+> 统计 my-org 组织的 enhancement 标签 PR，按季度维度（2026-Q1 和 Q2）输出
+
+agent 行为：月度筛选改为按季度聚合（Q1 = 01/02/03 月，Q2 = 04/05/06 月），其余流程不变。
+
+### 示例 4：仅统计特定仓库子集
+
+> 统计 openLiBing/openlibing-cicd 和 openLiBing/openlibing-web 两个仓库的 ai-assisted PR 占比
+
+agent 行为：跳过 Step 1，直接对指定仓库执行 Step 2-5。
+
+### 示例 5：英文提示词
+
+> Count PRs with label "ai-assisted" across all repos in the openLiBing org, include monthly breakdown for April and May
+
+agent 行为：同示例 2，标签为 `{ai-assisted}`，月度为 `2026-04` 和 `2026-05`。
 
 ## 规则
 
@@ -175,3 +193,6 @@ TOTAL,3879,121,3.1%,613,1,0.2%,582,55,9.5%
 - 遇到不可访问的仓库时跳过并记录，不中断整体统计
 - 分母为 0 时占比显示 `0%`，不执行除法
 - 大量仓库时注意 API 速率限制，适当添加延迟
+- **必须生成两份 CSV**：全量版和过滤版（过滤掉标签 PR 数为 0 的仓库）
+- 过滤版的 TOTAL 行必须基于过滤后的仓库重新累加计算，不能复用全量版的 TOTAL
+- 若当前月份不是完整月份（如月中统计），列名需标注截止日期，如 `Jun Total PRs (as of 2026-06-09)`
