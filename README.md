@@ -57,6 +57,7 @@ This keeps the set mostly orthogonal:
 | `gitcode-release-helper` | Plan and publish a release: notes, tag checks, assets, verification. | Uses release commands but adds release process guidance. |
 | `gitcode-pipeline-analyzer` | Analyze PR pipelines: parse pipeline comments, fetch failed task logs from openLiBing, inspect stage/job duration, build batch CI reports. | Works with GitCode PRs that have pipeline bot comments and openLiBing task links. |
 | `pipeline-bisect` | Diagnose pipeline regressions: compare good/bad runs, extract error logs from artifacts, trace to the triggering commit or PR. | Focuses on root-cause bisection when a previously-passing pipeline suddenly fails. |
+| `gitcode-label-stats` | Statistics of PR label distribution across repositories in a GitCode organization. Supports multiple labels, monthly breakdown, and ratio analysis. | Reports label adoption metrics; does not create, edit, or delete labels. |
 
 ## Overlap Policy
 
