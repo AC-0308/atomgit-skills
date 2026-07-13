@@ -32,6 +32,7 @@ gitcode help --json
 gitcode auth status
 gitcode auth status --json
 gitcode auth status --hostname gitcode.com
+gitcode auth status --show-token
 
 # Token for scripts
 gitcode auth token
@@ -64,6 +65,8 @@ Get-Content token.txt | gitcode auth login --with-token
 
 - `GC_TOKEN` has priority over `GITCODE_TOKEN`; environment variables override stored login.
 - `auth logout` removes stored credentials but cannot unset environment variables.
+- When unauthenticated or token invalid, `auth status` exits with code `4` (`ExitAuth`); `--json` still writes `logged_in:false` to stdout so agents can branch on the exit code alone.
+- `auth status --show-token` and `auth token` require an interactive TTY and refuse to print full tokens in non-interactive environments; there is no `--yes` bypass.
 - For code download and sync, prefer SSH and verify `ssh -T git@gitcode.com`.
 - For automation, prefer JSON output and avoid commands that require an interactive TTY.
 - Redact tokens in summaries, logs, PR comments, and issue comments.

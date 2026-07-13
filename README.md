@@ -2,7 +2,7 @@
 
 This repository publishes standalone skills for operating GitCode with the latest GitCode CLI.
 
-Current baseline: GitCode CLI `v0.6.0`.
+Current baseline: GitCode CLI `v0.7.0`.
 
 ## Cross-platform command rule
 
@@ -40,6 +40,8 @@ This keeps the set mostly orthogonal:
 | `gitcode-precommit` | Check pre-commit config and local environment before committing (`precommit check`, v0.6.0+). | Checks the local pre-commit environment; does not replace the repo's test suite or CI. |
 | `gitcode-label-milestone` | Label and milestone management for issues/PRs/releases. | Does not triage an issue queue by itself. |
 | `gitcode-regression` | Real-command smoke tests after CLI install, upgrade, packaging, or behavior changes. | Does not replace a target repository's own test suite. |
+| `gitcode-api` | Raw GitCode API calls when a typed command does not cover the endpoint. | Outputs remote raw responses; prefer typed commands when available. |
+| `gitcode-actions` | GitCode Actions pipeline runs, jobs, logs, and artifacts (CI/CD visibility). | Read-only inspection; does not trigger or rerun pipelines. |
 
 ## Workflow Skills
 

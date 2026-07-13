@@ -52,6 +52,20 @@ gitcode pr diff 123 -R owner/repo
 gitcode pr comments 123 -R owner/repo --json
 ```
 
+## Comments
+
+```bash
+gitcode pr comment 123 -R owner/repo --body "Short comment" --json
+gitcode pr comment 123 -R owner/repo --body-file comment.md --json
+gitcode pr comment edit <comment-id> -R owner/repo --body "Updated"
+gitcode pr comment delete <comment-id> -R owner/repo --yes
+gitcode pr comment resolve 123 <discussion-id> -R owner/repo
+gitcode pr comment unresolve 123 <discussion-id> -R owner/repo
+gitcode pr reply 123 -R owner/repo --discussion <discussion-id> --body "Reply"
+```
+
+Comment and discussion IDs come from `gitcode pr comments 123 -R owner/repo`.
+
 ## Edit and State
 
 ```bash
