@@ -1,25 +1,16 @@
 ---
 name: gitcode-precommit
-<<<<<<< HEAD
 description: Use GitCode CLI `precommit check` to verify a repository's pre-commit configuration and local environment before committing or submitting code. Detects `.pre-commit-config.yaml`, verifies/auto-installs the pre-commit tool, ensures the git hook is initialized, and optionally runs the hooks. Trigger before committing or opening a PR, or when a user asks to check pre-commit readiness. Requires GitCode CLI v0.6.0+.
-=======
-description: Use GitCode CLI precommit commands to check a repository's pre-commit configuration and local environment before committing. Trigger when users need to verify pre-commit is installed, initialize hooks, or run checks before commit.
->>>>>>> 30dda26 (chore: align skills with GitCode CLI v0.7.0)
 ---
 
 # gitcode-precommit
 
-<<<<<<< HEAD
 Make sure pre-commit is configured and the local environment can run it before code is committed.
-=======
-Check and prepare the pre-commit environment for a repository before committing.
->>>>>>> 30dda26 (chore: align skills with GitCode CLI v0.7.0)
 
 ## Command Entry
 
 Use `gitcode` for cross-platform instructions. Linux/macOS may use `gc`; Windows PowerShell should use `gitcode`.
 
-<<<<<<< HEAD
 Requires GitCode CLI **v0.6.0+** (the `precommit` command was added in v0.6.0). Confirm with `gitcode version` or `gitcode help precommit check`.
 
 ## What It Checks
@@ -99,6 +90,18 @@ The `actions_taken` array reports what was done, e.g.
 - Read `ok` together with `config_found`: `ok: true, config_found: false` means "no config, skipped", not "verified ready".
 - `run_output` carries the `pre-commit run` output only when `run_result` is `failed`.
 
+## Result Classification
+
+The `--json` `reason` field is stable and machine-readable; branch on it:
+
+- `no_config` — repo has no pre-commit config (`ok=true`, normal skip).
+- `tool_missing` — `pre-commit` tool not installed (and not authorized to install).
+- `hook_missing` — git pre-commit hook not initialized.
+- `run_failed` — environment ready but `pre-commit run` failed.
+- `install_failed` — auto-install authorized but no usable tool produced; see `install_failure_categories` (`permission` / `network` / `toolchain`).
+- `not_in_repo` — current directory is not inside a git repo.
+- empty — environment fully ready.
+
 ## Exit Codes
 
 - `0` ready, or no config (nothing to check).
@@ -117,54 +120,6 @@ When auto-installing, the tool tries available installers in order and falls thr
   is authorized to install pre-commit and run `pre-commit install`. Only use
   `--no-install` when the task is explicitly diagnose-only.
 - Use `--json` when a script or agent needs to parse readiness; key off `ok`,
-  `run_result`, and `actions_taken`.
+  `run_result`, `reason`, and `actions_taken`.
 - This command checks/sets up the local pre-commit environment; it does not
   replace the repository's own test suite or CI.
-=======
-## Check Flow
-
-`precommit check` runs four steps:
-
-1. Detect `.pre-commit-config.yaml` (or `.yml`) at the repo root. No config means "nothing to check" (exit `0`).
-2. Detect whether the local `pre-commit` tool is installed.
-3. Detect whether the git pre-commit hook is initialized.
-4. Optionally run `pre-commit run --all-files` with `--run`.
-
-## Commands
-
-```bash
-# Check whether the environment is ready
-gitcode precommit check
-
-# Check and actually run pre-commit
-gitcode precommit check --run
-
-# Diagnose only; never install or initialize
-gitcode precommit check --no-install
-
-# Allow auto install/initialize in non-interactive environments
-gitcode precommit check --yes
-
-# Machine-readable output
-gitcode precommit check --json
-```
-
-## Result Classification
-
-The `--json` `reason` field is stable and machine-readable; branch on it:
-
-- `no_config` — repo has no pre-commit config (`ok=true`, normal skip).
-- `tool_missing` — `pre-commit` tool not installed (and not authorized to install).
-- `hook_missing` — git pre-commit hook not initialized.
-- `run_failed` — environment ready but `pre-commit run` failed.
-- `install_failed` — auto-install authorized but no usable tool produced; see `install_failure_categories` (`permission` / `network` / `toolchain`).
-- `not_in_repo` — current directory is not inside a git repo.
-- empty — environment fully ready.
-
-## Rules
-
-- `--no-install` and `--yes` are mutually exclusive.
-- In a TTY, missing tooling may auto-install; in non-interactive environments pass `--yes` to allow modifications, otherwise it only diagnoses and errors.
-- Exit codes: `0` ready or no config; `1` not ready / check failed / not a git repo / non-interactive without `--yes`; `2` usage error.
-- Do not run `--run` blindly in CI without first confirming the config; treat `run_failed` as a real signal, not an environment issue.
->>>>>>> 30dda26 (chore: align skills with GitCode CLI v0.7.0)

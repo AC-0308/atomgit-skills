@@ -1,117 +1,61 @@
 ---
 name: gitcode-pr-apply-feedback
-description: Pull all review feedback (inline comments, PR discussion, issue comments) from a GitCode PR, organize into an actionable fix list, apply fixes locally, verify, push, and reply. Use when the user receives PR review feedback, needs to apply code review suggestions, fix inline review findings, or says 处理评审意见/按评审修改代码/apply review.
+description: Pull GitCode PR review feedback, organize it into an actionable fix list, apply and verify fixes, push them, reply to each discussion, and resolve only completed inline discussions. Use when applying review feedback or closing review threads.
 ---
 
-# gitcode-pr-apply-feedback
+# Apply GitCode PR Feedback
 
-Pull all review feedback from a GitCode PR, organize it into a fix list, apply each fix locally, verify, push, and reply to reviewers.
+Close the review loop without losing discussion state:
 
-## Workflow overview
-
-```
-Pull all feedback → Triage & prioritize → Fix each item → Verify → Push → Reply
+```text
+Collect -> triage -> fix -> verify -> push -> reply -> resolve -> verify state
 ```
 
-## Step 1: Pull all feedback
+## 1. Collect Feedback
 
-### Inline comments (includes file + position info)
+Read inline discussions and their machine-readable state:
 
 ```bash
 gitcode pr comments <PR> -R owner/repo --json
 ```
 
-Each comment with `path` and `position` fields is an inline finding. The `path` gives the file, `position` gives the diff line.
+Record each actionable comment's `id`, `discussion_id`, `path`, `position`, and
+`resolved` fields. `position` is the target line number in the new version of
+the file (`new_line`), not a unified-diff offset.
 
-### PR discussion comments
+Read general PR comments as well:
 
 ```bash
 gitcode pr view <PR> -R owner/repo --comments --json
 ```
 
-General comments without file/line — these are broader feedback, design suggestions, or overall concerns.
-
-### Associated issue comments (if the PR has a linked issue)
+If the PR references an issue, read that issue's comments separately:
 
 ```bash
-# Find linked issue from PR body
-gitcode pr view <PR> -R owner/repo --json | jq '.body'
-
-# Pull issue comments
 gitcode issue comments <issue> -R owner/repo --json
 ```
 
-## Step 2: Triage
+Never copy tokens, private keys, credentials, or vulnerability details into a
+working list, reply, commit, or review summary.
 
-Organize all findings into a fix list ordered by severity:
+## 2. Triage
 
-| Severity | Action |
-|----------|--------|
-| `需修改` / P0 / blocking | Fix now, cannot merge without |
-| `中` / P1 | Fix now, strongly recommended |
-| `建议` / P2 | Fix if reasonable, can defer |
-| `低` / P3 | Note and move on |
+Order findings by impact: blockers and correctness or security defects first,
+then missing tests, maintainability concerns, and optional suggestions. Group
+items by file and distinguish these outcomes:
 
-Group by file so you can fix all issues in one file before moving to the next.
+- `fix`: implement and verify now.
+- `clarify`: ask the reviewer; keep the discussion unresolved.
+- `defer`: explain why and keep the discussion unresolved unless the reviewer
+  explicitly agrees that it is complete.
+- `reject`: explain the technical reason; do not resolve the discussion merely
+  because a reply was posted.
 
-Create a working list — just a mental or written checklist:
+## 3. Apply And Verify Fixes
 
-```
-[需修改] pkg/precommit/detect.go:62 → add filepath.Clean
-[需修改] pkg/cmd/precommit/check/check.go:79 → use AddJSONFlag
-[中]     pkg/precommit/check.go:34 → clarify OK semantics in comment
-[建议]   pkg/precommit/detect.go:26 → switch to cmd.Output()
-```
-
-## Step 3: Apply fixes
-
-### Checkout the PR branch
-
-```bash
-git fetch origin refs/merge-requests/<PR>/head:refs/remotes/pr/<PR>
-git checkout -b fix/pr-<PR>-review refs/remotes/pr/<PR>
-```
-
-Or if the author's branch is already pushed:
-
-```bash
-git fetch origin <pr-branch>
-git checkout <pr-branch>
-```
-
-### Map inline comments to local code
-
-An inline comment's `path` and `position` point to the PR diff. To find the corresponding line in the local file:
-
-- **New files**: position ≈ source line (within ±3). The line in the comment maps directly to the local file line.
-- **Modified files**: Look at the diff hunk (`@@ -old,count +new,count @@`). The `+new_start` tells you which source line the hunk starts at. The comment's position minus the `@@` line count gives the offset within the hunk.
-- When in doubt: read the file, find the code being referenced by content, not by line number.
-
-### Fix each item
-
-For each finding:
-1. Read the relevant code
-2. Understand the reviewer's concern
-3. Apply the fix — don't blindly follow; verify the fix makes sense
-4. If the fix would break something the reviewer didn't consider, note it
-
-### Reply as you go
-
-After fixing a batch of related items, reply to the reviewer:
-
-```bash
-gitcode pr comment <PR> --body "Fixed: added filepath.Clean to hookPath return. [done]" -R owner/repo
-```
-
-For inline comments, reply to the specific comment thread:
-
-```bash
-gitcode pr reply <PR> --comment-id <id> --body "Done: switched to AddJSONFlag. [fixed]" -R owner/repo
-```
-
-## Step 4: Verify
-
-Before pushing, run the minimal verification:
+Check out the PR branch without overwriting concurrent work, apply each accepted
+fix, and run the repository's required checks. For a Go repository, the minimum
+usually includes:
 
 ```bash
 go build ./...
@@ -119,55 +63,65 @@ go test ./...
 go vet ./...
 ```
 
-If the PR has associated CI (GitHub Actions), trigger it:
+Follow the target repository's own contribution, testing, security, and release
+rules when they require more.
+
+## 4. Push Safely
+
+Review the staged diff, commit intentionally, and push the branch. Use
+`--force-with-lease` only when rewriting the author's branch is necessary and
+authorized; never use an unconditional force push.
+
+## 5. Reply To Inline Discussions
+
+Use the `discussion_id` returned by `pr comments`, not the comment `id`:
 
 ```bash
-gh workflow run ci.yml --ref <branch>
+gitcode pr reply <PR> \
+  --discussion <discussion-id> \
+  --body "Fixed and verified: <concise evidence>." \
+  -R owner/repo
 ```
 
-## Step 5: Push
+The reply should identify the change and the verification evidence. A reply by
+itself does not mark the discussion as resolved.
+
+## 6. Resolve Completed Discussions
+
+Resolve only after all of these are true:
+
+1. The requested change, or an agreed alternative, is implemented.
+2. Required local verification passed.
+3. The fix was pushed to the PR branch.
+4. A reply with concise evidence was posted to the same discussion.
+5. No clarification, disagreement, or follow-up remains.
 
 ```bash
-git add <changed-files>
-git commit -m "fix: address review feedback for PR #<N>"
-git push origin <branch> --force
+gitcode pr comment resolve <PR> <discussion-id> -R owner/repo
 ```
 
-If this is the author's branch you're pushing to, use `--force-with-lease` to avoid overwriting concurrent changes.
+Do not resolve deferred, rejected, partially fixed, failed-verification, or
+awaiting-clarification findings.
 
-## Step 6: Summary reply
+## 7. Verify Remote State
 
-After all fixes are pushed, post a summary comment listing what was addressed, what was deferred, and why:
+Read the discussions again and confirm the target `discussion_id` reports
+`resolved: true`:
 
 ```bash
-gitcode pr review <PR> -R owner/repo --comment-file summary.md
+gitcode pr comments <PR> -R owner/repo --json
 ```
 
-Summary format:
-
-```markdown
-## Review feedback applied
-
-### Fixed
-- [需修改] pkg/precommit/detect.go:62 — added filepath.Clean
-- [需修改] pkg/cmd/precommit/check/check.go:79 — switched to AddJSONFlag
-- [中] pkg/precommit/check.go:34 — clarified comment
-
-### Deferred
-- [建议] pkg/precommit/detect.go:26 — cmd.Output change needs broader discussion
-
-### Verification
-- go build: passed
-- go test: passed
-- CI: triggered (link)
-```
+If the state is still false, report the failure instead of claiming the review
+feedback is complete. Finish with a PR summary that lists fixed, unresolved,
+and deferred items plus verification evidence.
 
 ## Rules
 
-- Triage before coding. Don't fix P3 items before P0 items.
-- Fix by understanding, not by rote. If a reviewer's suggestion would break something, explain why and propose an alternative.
-- Reply to each finding. Never leave a reviewer wondering whether their feedback was seen.
-- Push after each batch of related fixes, not after every single line change.
-- If a finding is unclear, ask for clarification before coding — don't guess.
-- Verify before pushing. A broken push is worse than no push.
-- The PR author's branch may be read-protected on GitCode. In that case, create a new branch and comment the branch name so the author can pull from it.
+- Use structured JSON to identify comment and discussion IDs.
+- Fix by understanding the finding, not by blindly applying a suggestion.
+- Reply to every actionable finding; use the matching discussion for inline
+  feedback.
+- Resolve only completed discussions and verify the resulting remote state.
+- Keep unresolved work visible until the reviewer agrees it is complete.
+- Do not expose secrets in commands, output, comments, commits, or logs.

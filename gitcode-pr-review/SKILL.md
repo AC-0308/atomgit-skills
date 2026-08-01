@@ -40,6 +40,13 @@ gitcode pr comment 123 -R owner/repo --path path/to/file.go --position 12 --body
 gitcode pr review 123 -R owner/repo --comment-file review-report.md
 ```
 
+For inline comments, `--position` is the one-based line number in the new file
+version (`new_line`), not an offset in the unified diff.
+
+When applying feedback, use `discussion_id` from `pr comments --json`, reply
+with `pr reply --discussion`, and resolve only after the fix is verified and
+pushed. Read comments again to confirm `resolved: true`.
+
 Approve:
 
 ```bash
