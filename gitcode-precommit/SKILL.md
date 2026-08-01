@@ -90,6 +90,18 @@ The `actions_taken` array reports what was done, e.g.
 - Read `ok` together with `config_found`: `ok: true, config_found: false` means "no config, skipped", not "verified ready".
 - `run_output` carries the `pre-commit run` output only when `run_result` is `failed`.
 
+## Result Classification
+
+The `--json` `reason` field is stable and machine-readable; branch on it:
+
+- `no_config` — repo has no pre-commit config (`ok=true`, normal skip).
+- `tool_missing` — `pre-commit` tool not installed (and not authorized to install).
+- `hook_missing` — git pre-commit hook not initialized.
+- `run_failed` — environment ready but `pre-commit run` failed.
+- `install_failed` — auto-install authorized but no usable tool produced; see `install_failure_categories` (`permission` / `network` / `toolchain`).
+- `not_in_repo` — current directory is not inside a git repo.
+- empty — environment fully ready.
+
 ## Exit Codes
 
 - `0` ready, or no config (nothing to check).
@@ -108,6 +120,6 @@ When auto-installing, the tool tries available installers in order and falls thr
   is authorized to install pre-commit and run `pre-commit install`. Only use
   `--no-install` when the task is explicitly diagnose-only.
 - Use `--json` when a script or agent needs to parse readiness; key off `ok`,
-  `run_result`, and `actions_taken`.
+  `run_result`, `reason`, and `actions_taken`.
 - This command checks/sets up the local pre-commit environment; it does not
   replace the repository's own test suite or CI.

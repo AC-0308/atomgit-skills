@@ -45,6 +45,17 @@ gitcode pr diff 123 -R owner/repo
 gitcode pr comment 123 -R owner/repo --path path/to/file.go --position 12 --body-file inline.md --json
 ```
 
+Manage existing comments (comment/discussion IDs come from `gitcode pr comments 123 -R owner/repo`):
+
+```bash
+gitcode pr comment edit <comment-id> -R owner/repo --body "Updated comment"
+gitcode pr comment delete <comment-id> -R owner/repo --yes
+gitcode pr comment resolve 123 <discussion-id> -R owner/repo
+gitcode pr comment unresolve 123 <discussion-id> -R owner/repo
+```
+
+`--position` is the line number in the new version of the file (diff right side), not a hunk offset; use `gitcode pr diff <number>` to find it.
+
 ## Submit Review or Approval
 
 ```bash

@@ -72,6 +72,28 @@ gitcode repo delete infra-test/nonexistent --dry-run
 gitcode release delete v0.0.0-test -R infra-test/gctest1 --dry-run
 ```
 
+## Exit Code Checks
+
+The CLI defines stable exit codes for automation. Verify each:
+
+```bash
+gitcode issue view 1 -R infra-test/gctest1   # success -> exit 0
+gitcode issue view abc                        # usage error -> exit 2
+gitcode issue view 999999 -R infra-test/gctest1  # not found -> exit 3
+gitcode auth status                           # unauthenticated -> exit 4
+```
+
+| Code | Meaning | Typical scenario |
+|------|---------|------------------|
+| 0 | Success | Normal completion |
+| 1 | Generic error | API error, network error |
+| 2 | Usage error | Missing/invalid args |
+| 3 | Not found | issue/pr/repo does not exist |
+| 4 | Auth error | Not logged in or invalid token |
+| 5 | Conflict | PR merge conflict |
+
+`auth status --json` still writes JSON to stdout when unauthenticated (`logged_in:false`), with exit code `4`.
+
 ## Report Format
 
 ```markdown
@@ -84,6 +106,7 @@ gitcode release delete v0.0.0-test -R infra-test/gctest1 --dry-run
 - Read-only commands: passed/failed
 - SSH transfer: passed/failed
 - Write dry-runs: passed/failed
+- Exit codes: 0/2/3/4 verified (note any deviation)
 - Risks or skipped checks: ...
 ```
 

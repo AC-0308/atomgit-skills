@@ -44,6 +44,18 @@ gitcode repo stats --branch main -R owner/repo --json
 gitcode repo stats --branch main --since 2026-01-01 --until 2026-05-26 -R owner/repo --json
 ```
 
+## Branch and Commit Log
+
+```bash
+# Branch details (name, protection, latest commit)
+gitcode repo branch view main -R owner/repo --json
+gitcode repo branch view main   # current repo
+
+# Repository commit log, optionally filtered by file and branch/tag/sha
+gitcode repo log -R owner/repo --json
+gitcode repo log -R owner/repo --file README.md --branch main --limit 5 --json
+```
+
 ## Clone and Fork
 
 ```bash
