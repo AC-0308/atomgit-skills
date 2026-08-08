@@ -37,6 +37,7 @@ gitcode repo view
 gitcode repo list
 gitcode repo list --owner owner --limit 30
 gitcode repo list --visibility public --format table
+gitcode repo list --per-page 50 --json
 gitcode repo list --json
 
 gitcode repo stats --branch main -R owner/repo
@@ -54,6 +55,7 @@ gitcode repo branch view main   # current repo
 # Repository commit log, optionally filtered by file and branch/tag/sha
 gitcode repo log -R owner/repo --json
 gitcode repo log -R owner/repo --file README.md --branch main --limit 5 --json
+gitcode repo log -R owner/repo --per-page 50 --json
 ```
 
 ## Clone and Fork

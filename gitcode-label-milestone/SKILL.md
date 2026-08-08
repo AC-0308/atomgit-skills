@@ -16,6 +16,7 @@ Use `gitcode` for cross-platform instructions. Linux/macOS may use `gc`; Windows
 ```bash
 gitcode label list -R owner/repo
 gitcode label list -R owner/repo --json
+gitcode label list -R owner/repo --per-page 50 --page 2 --json
 
 gitcode label create "bug" -R owner/repo --color "#ff0000" --description "Bug report"
 
@@ -42,6 +43,7 @@ gitcode pr edit 123 -R owner/repo --labels bug,priority-high --json
 
 ```bash
 gitcode milestone list -R owner/repo --json
+gitcode milestone list -R owner/repo --per-page 50 --json
 gitcode milestone create "v1.0" -R owner/repo --description "First release"
 gitcode milestone view 1 -R owner/repo --json
 gitcode milestone view 1 -R owner/repo --issues=false

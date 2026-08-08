@@ -47,6 +47,7 @@ gitcode issue create -R owner/repo --title "Task" --body-file body.md --custom-f
 gitcode issue list -R owner/repo --state open --json
 gitcode issue list -R owner/repo --state all --search "keyword" --json
 gitcode issue list -R owner/repo --label bug,enhancement --limit 20 --format table
+gitcode issue list -R owner/repo --per-page 50 --json
 gitcode issue list -R owner/repo --time-format relative --json
 gitcode issue list -R owner/repo --template '{{range .}}#{{.Number}} {{.Title}}{{"\n"}}{{end}}'
 gitcode issue view 123 -R owner/repo --comments --json
